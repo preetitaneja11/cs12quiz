@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CS Quiz">
+<link rel="manifest" href="manifest.json">
+<title>CS Quiz – Class 12</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --bg:#f5f5f7;--card:#ffffff;--text:#1a1a1a;--sub:#666;--border:#e0e0e0;
+    --blue:#2563eb;--green:#16a34a;--red:#dc2626;--amber:#d97706;
+    --radius:14px;--radius-sm:10px;
+  }
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+  .screen{display:none;min-height:100vh;padding:16px;padding-bottom:32px}
+  .screen.active{display:block}
+
+  /* HOME */
+  .home-header{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%);border-radius:var(--radius);padding:24px 20px;margin-bottom:20px;color:#fff}
+  .home-header h1{font-size:26px;font-weight:700;letter-spacing:-0.5px}
+  .home-header p{font-size:14px;opacity:0.7;margin-top:4px}
+  .home-header .tagline{font-size:12px;opacity:0.5;margin-top:12px;text-transform:uppercase;letter-spacing:1px}
+
+  /* LOGIN */
+  .login-card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:20px;margin-bottom:16px}
+  .login-card h2{font-size:16px;font-weight:600;margin-bottom:14px}
+  .field{margin-bottom:12px}
+  .field label{font-size:13px;color:var(--sub);display:block;margin-bottom:5px}
+  .field input, .field select{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:15px;background:#fff;color:var(--text);outline:none}
+  .field input:focus, .field select:focus{border-color:var(--blue)}
+  .btn-primary{width:100%;background:var(--blue);color:#fff;border:none;border-radius:var(--radius-sm);padding:14px;font-size:15px;font-weight:600;cursor:pointer;letter-spacing:0.2px}
+  .btn-primary:active{opacity:0.85}
+  .btn-outline{width:100%;background:transparent;color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px;font-size:15px;cursor:pointer}
+  .btn-outline:active{background:var(--bg)}
+
+  /* CHAPTERS */
+  .section-title{font-size:13px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px}
+  .chapter-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:transform .1s}
+  .chapter-card:active{transform:scale(0.98)}
+  .ch-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+  .ch-info{flex:1;min-width:0}
+  .ch-name{font-size:15px;font-weight:600}
+  .ch-meta{font-size:12px;color:var(--sub);margin-top:3px}
+  .ch-badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;background:#e0f2fe;color:#0369a1}
+  .ch-arrow{color:#ccc;font-size:18px}
+  .progress-bar{height:3px;background:#f0f0f0;border-radius:2px;margin-top:8px;overflow:hidden}
+  .progress-fill{height:100%;border-radius:2px;background:var(--blue);transition:width .4s}
+
+  /* DIFFICULTY */
+  .diff-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .diff-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 12px;text-align:center;cursor:pointer;transition:transform .1s}
+  .diff-card:active{transform:scale(0.96)}
+  .diff-card .di{font-size:24px;margin-bottom:6px}
+  .diff-card .dn{font-size:14px;font-weight:600}
+  .diff-card .dd{font-size:11px;color:var(--sub);margin-top:3px}
+
+  /* QUIZ */
+  .quiz-topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .quit-btn{background:none;border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer;color:var(--sub)}
+  .timer{background:#fff;border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:5px}
+  .timer.urgent{border-color:#fca5a5;color:var(--red);background:#fef2f2}
+  .q-counter{font-size:13px;color:var(--sub)}
+  .quiz-progress{height:5px;background:#e5e7eb;border-radius:3px;margin-bottom:16px;overflow:hidden}
+  .quiz-pfill{height:100%;background:var(--blue);border-radius:3px;transition:width .4s}
+  .question-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:14px}
+  .q-chapter-tag{font-size:11px;color:var(--blue);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+  .q-text{font-size:16px;font-weight:500;line-height:1.55}
+  .option{width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:13px 14px;margin-bottom:9px;text-align:left;font-size:15px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .15s,background .15s}
+  .option:active:not(:disabled){background:#f8f9ff}
+  .opt-lbl{width:26px;height:26px;border-radius:50%;border:1.5px solid #d1d5db;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#6b7280;flex-shrink:0}
+  .option.correct{background:#f0fdf4;border-color:#16a34a}
+  .option.correct .opt-lbl{background:#16a34a;border-color:#16a34a;color:#fff}
+  .option.wrong{background:#fef2f2;border-color:#dc2626}
+  .option.wrong .opt-lbl{background:#dc2626;border-color:#dc2626;color:#fff}
+  .option:disabled{cursor:default}
+  .explanation{background:#eff6ff;border-left:3px solid var(--blue);border-radius:0 8px 8px 0;padding:12px 14px;margin-bottom:14px;font-size:13px;color:#1e40af;line-height:1.5;display:none}
+  .next-btn{width:100%;background:#1a1a2e;color:#fff;border:none;border-radius:var(--radius-sm);padding:15px;font-size:15px;font-weight:600;cursor:pointer;display:none}
+  .next-btn:active{opacity:0.85}
+
+  /* RESULT */
+  .result-hero{background:linear-gradient(135deg,#1a1a2e,#0f3460);border-radius:var(--radius);padding:28px 20px;text-align:center;color:#fff;margin-bottom:16px}
+  .ring-wrap{width:100px;height:100px;position:relative;margin:0 auto 16px}
+  .ring-wrap svg{transform:rotate(-90deg)}
+  .ring-pct{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:24px;font-weight:700;color:#fff}
+  .result-title{font-size:20px;font-weight:700;margin-bottom:4px}
+  .result-sub{font-size:13px;opacity:0.7}
+  .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+  .stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 8px;text-align:center}
+  .stat-val{font-size:22px;font-weight:700}
+  .stat-lbl{font-size:11px;color:var(--sub);margin-top:3px}
+  .sending-badge{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;font-size:13px;color:#1d4ed8;text-align:center;margin-bottom:14px}
+  .action-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- ===== HOME / LOGIN SCREEN ===== -->
+<div id="screen-home" class="screen active">
+  <div class="home-header">
+    <div style="font-size:32px;margin-bottom:8px">💻</div>
+    <h1>CS Quiz</h1>
+    <p>Class 12 Computer Science</p>
+    <div class="tagline">CBSE · Topic-wise Practice</div>
+  </div>
+
+  <div class="login-card">
+    <h2>Enter your details</h2>
+    <div class="field">
+      <label>Your Name</label>
+      <input type="text" id="student-name" placeholder="e.g. Priya Sharma" autocomplete="name">
+    </div>
+    <div class="field">
+      <label>Roll Number</label>
+      <input type="text" id="student-roll" placeholder="e.g. 12A01" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Section</label>
+      <select id="student-section">
+        <option value="">Select section</option>
+        <option>A</option><option>B</option><option>C</option><option>D</option>
+      </select>
+    </div>
+    <button class="btn-primary" onclick="loginStudent()" style="margin-top:4px">Start Quizzing →</button>
+  </div>
+</div>
+
+<!-- ===== CHAPTERS SCREEN ===== -->
+<div id="screen-chapters" class="screen">
+  <div class="home-header" style="padding:16px 18px;margin-bottom:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:13px;opacity:0.6">Welcome back,</div>
+        <div style="font-size:18px;font-weight:700" id="welcome-name"></div>
+      </div>
+      <button onclick="logout()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;border-radius:8px;padding:7px 13px;font-size:13px;cursor:pointer">← Logout</button>
+    </div>
+  </div>
+  <div class="section-title">Choose a chapter</div>
+  <div id="chapters-list"></div>
+</div>
+
+<!-- ===== DIFFICULTY SCREEN ===== -->
+<div id="screen-diff" class="screen">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px">
+    <button class="quit-btn" onclick="showChapters()">← Back</button>
+    <div>
+      <div style="font-size:17px;font-weight:700" id="diff-title"></div>
+      <div style="font-size:12px;color:var(--sub)">Select difficulty</div>
+    </div>
+  </div>
+  <div class="diff-grid">
+    <div class="diff-card" onclick="startQuiz('easy')"><div class="di">🟢</div><div class="dn">Easy</div><div class="dd">5 Qs · 30s each</div></div>
+    <div class="diff-card" onclick="startQuiz('medium')"><div class="di">🟡</div><div class="dn">Medium</div><div class="dd">7 Qs · 25s each</div></div>
+    <div class="diff-card" onclick="startQuiz('hard')"><div class="di">🔴</div><div class="dn">Hard</div><div class="dd">10 Qs · 20s each</div></div>
+    <div class="diff-card" onclick="startQuiz('mixed')"><div class="di">🎲</div><div class="dn">Mixed</div><div class="dd">8 Qs · random</div></div>
+  </div>
+</div>
+
+<!-- ===== QUIZ SCREEN ===== -->
+<div id="screen-quiz" class="screen">
+  <div class="quiz-topbar">
+    <button class="quit-btn" onclick="confirmQuit()">✕ Quit</button>
+    <span class="q-counter" id="q-counter"></span>
+    <div class="timer" id="timer">⏱ <span id="timer-val">--</span></div>
+  </div>
+  <div class="quiz-progress"><div class="quiz-pfill" id="quiz-pfill"></div></div>
+  <div class="question-card">
+    <div class="q-chapter-tag" id="q-tag"></div>
+    <div class="q-text" id="q-text"></div>
+  </div>
+  <div id="options-wrap"></div>
+  <div class="explanation" id="explanation"></div>
+  <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next →</button>
+</div>
+
+<!-- ===== RESULT SCREEN ===== -->
+<div id="screen-result" class="screen">
+  <div class="result-hero">
+    <div class="ring-wrap">
+      <svg width="100" height="100" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="9"/>
+        <circle cx="50" cy="50" r="42" fill="none" stroke="#60a5fa" stroke-width="9"
+          stroke-linecap="round" stroke-dasharray="263.89" id="ring-fill" stroke-dashoffset="263.89"/>
+      </svg>
+      <div class="ring-pct" id="ring-pct">0%</div>
+    </div>
+    <div class="result-title" id="result-title"></div>
+    <div class="result-sub" id="result-sub"></div>
+  </div>
+  <div class="stats-row">
+    <div class="stat"><div class="stat-val" id="s-correct" style="color:var(--green)"></div><div class="stat-lbl">Correct</div></div>
+    <div class="stat"><div class="stat-val" id="s-wrong" style="color:var(--red)"></div><div class="stat-lbl">Wrong</div></div>
+    <div class="stat"><div class="stat-val" id="s-time"></div><div class="stat-lbl">Avg time</div></div>
+  </div>
+  <div class="sending-badge" id="send-status">📡 Saving your result to the teacher's sheet...</div>
+  <div class="action-row">
+    <button class="btn-outline" onclick="retryQuiz()">Retry</button>
+    <button class="btn-primary" onclick="showChapters()">More topics</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// CONFIGURATION — PASTE YOUR GOOGLE APPS SCRIPT URL HERE
+// ============================================================
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwis4VWCEW6N-7Xwx8402I3tDL6QETw_8tJ3F-YBK7avIQb7dwgNqaO1iChGXSSPMyT/exec';
+// ============================================================
+
+const CHAPTERS = [
+  {id:'networking', name:'Computer Networks', icon:'🌐', color:'#dbeafe',
+   questions:[
+    {q:"Which layer of the OSI model handles routing?",o:["Physical","Network","Transport","Session"],a:1,e:"The Network layer (Layer 3) handles routing using IP addresses."},
+    {q:"What does DNS stand for?",o:["Data Network System","Domain Name System","Direct Network Service","Distributed Name Server"],a:1,e:"DNS translates human-readable domain names into IP addresses."},
+    {q:"Which protocol is used for sending emails?",o:["HTTP","FTP","SMTP","POP3"],a:2,e:"SMTP (Simple Mail Transfer Protocol) is used for sending emails."},
+    {q:"What is the default port for HTTPS?",o:["80","21","443","8080"],a:2,e:"HTTPS uses port 443, while HTTP uses port 80."},
+    {q:"Which topology has a central hub?",o:["Bus","Ring","Star","Mesh"],a:2,e:"Star topology connects all nodes to a central hub or switch."},
+    {q:"What does IP stand for?",o:["Internet Protocol","Internal Process","Intranet Provider","Input Port"],a:0,e:"IP stands for Internet Protocol, used for addressing packets."},
+    {q:"MAC address operates at which OSI layer?",o:["Network","Physical","Data Link","Session"],a:2,e:"MAC addresses work at the Data Link layer (Layer 2)."},
+    {q:"Which wireless standard offers the fastest speed?",o:["802.11a","802.11b","802.11g","802.11ac"],a:3,e:"802.11ac (Wi-Fi 5) offers the fastest speeds among listed options."},
+    {q:"What is a firewall?",o:["A virus","A network security system","A type of cable","A server"],a:1,e:"A firewall monitors and controls network traffic based on security rules."},
+    {q:"HTTP is stateless. What does this mean?",o:["It is slow","Each request is independent","It uses no ports","It only works on LAN"],a:1,e:"Stateless means each HTTP request is independent; the server remembers nothing between requests."}
+   ]},
+  {id:'python', name:'Python & Programming', icon:'🐍', color:'#dcfce7',
+   questions:[
+    {q:"What is the output of: print(type(5/2))?",o:["<class 'int'>","<class 'float'>","<class 'str'>","Error"],a:1,e:"In Python 3, dividing two integers with / always returns a float."},
+    {q:"Which keyword is used to define a function?",o:["function","define","def","func"],a:2,e:"The 'def' keyword is used to define functions in Python."},
+    {q:"What does len([1,2,3]) return?",o:["2","3","4","Error"],a:1,e:"len() returns the number of elements. The list has 3 elements."},
+    {q:"Which of these is a mutable data type?",o:["tuple","string","list","int"],a:2,e:"Lists are mutable — their elements can be changed after creation."},
+    {q:"What does the // operator do?",o:["Division","Floor division","Modulus","Power"],a:1,e:"// performs floor division, returning the integer quotient."},
+    {q:"What will 'Hello'[1] return?",o:["H","e","He","Error"],a:1,e:"Python string indexing starts at 0, so index 1 gives 'e'."},
+    {q:"Which loop is best when the number of iterations is known?",o:["while","do-while","for","repeat"],a:2,e:"The for loop is best when the number of iterations is known."},
+    {q:"What is a lambda function?",o:["A class","An anonymous function","A built-in module","A loop"],a:1,e:"Lambda creates small anonymous functions without using def."},
+    {q:"What does append() do to a list?",o:["Removes last element","Adds element at beginning","Adds element at end","Sorts the list"],a:2,e:"append() adds an element to the end of a list."},
+    {q:"What is the output of: print(2**3)?",o:["6","8","9","5"],a:1,e:"** is the exponentiation operator. 2**3 = 2³ = 8."}
+   ]},
+  {id:'database', name:'Database & SQL', icon:'🗄️', color:'#fef9c3',
+   questions:[
+    {q:"What does DBMS stand for?",o:["Data Base Managing System","Database Management System","Data Base Main Server","Digital Base Memory Store"],a:1,e:"DBMS stands for Database Management System."},
+    {q:"Which SQL command retrieves data?",o:["INSERT","UPDATE","SELECT","DELETE"],a:2,e:"SELECT is used to query and retrieve data from a database."},
+    {q:"What is a primary key?",o:["A key used for sorting","A unique identifier for each record","A foreign key reference","A composite key"],a:1,e:"A primary key uniquely identifies each row in a table."},
+    {q:"Which SQL clause filters rows?",o:["ORDER BY","GROUP BY","WHERE","HAVING"],a:2,e:"WHERE filters rows based on a condition before grouping."},
+    {q:"What is a foreign key?",o:["A primary key in same table","A key linking two tables","A duplicate key","An encrypted key"],a:1,e:"A foreign key in one table references the primary key of another table."},
+    {q:"Which command removes all rows but keeps table structure?",o:["DROP","DELETE","TRUNCATE","REMOVE"],a:2,e:"TRUNCATE removes all rows from a table but keeps its structure."},
+    {q:"What does DDL stand for?",o:["Data Definition Language","Dynamic Data Language","Data Display Logic","Database Design Layer"],a:0,e:"DDL (Data Definition Language) includes commands like CREATE, ALTER, DROP."},
+    {q:"Which aggregate function returns the total?",o:["AVG()","COUNT()","SUM()","MAX()"],a:2,e:"SUM() returns the total sum of a numeric column."},
+    {q:"What is normalization?",o:["Sorting data","Reducing data redundancy","Encrypting data","Backing up data"],a:1,e:"Normalization organizes data to reduce redundancy and improve integrity."},
+    {q:"Which SQL clause sorts results?",o:["WHERE","HAVING","ORDER BY","GROUP BY"],a:2,e:"ORDER BY sorts the result set in ascending or descending order."}
+   ]},
+  {id:'oop', name:'OOP with Python', icon:'🔷', color:'#ede9fe',
+   questions:[
+    {q:"What is encapsulation?",o:["Inheriting properties","Hiding internal details","Overriding methods","Creating objects"],a:1,e:"Encapsulation bundles data and methods and hides implementation details."},
+    {q:"Which keyword creates a class in Python?",o:["struct","class","object","def"],a:1,e:"The 'class' keyword defines a class in Python."},
+    {q:"What is __init__ in Python?",o:["Destructor","Class variable","Constructor method","Private method"],a:2,e:"__init__ is the constructor, automatically called when an object is created."},
+    {q:"What is inheritance?",o:["Copying a class","A class acquiring properties of another","Deleting an object","Creating a new method"],a:1,e:"Inheritance allows a child class to acquire properties from a parent class."},
+    {q:"What is polymorphism?",o:["Multiple inheritance","Same interface, different implementations","Hiding data","Creating many objects"],a:1,e:"Polymorphism allows the same method name to behave differently in different classes."},
+    {q:"Which method is the destructor?",o:["__init__","__del__","__str__","__end__"],a:1,e:"__del__ is the destructor method called when an object is being destroyed."},
+    {q:"How do you make an attribute private in Python?",o:["Using # prefix","Using $ prefix","Using __ prefix","Using @ prefix"],a:2,e:"A double underscore prefix (__attr) makes an attribute name-mangled (private)."},
+    {q:"What is method overriding?",o:["Calling a method twice","Redefining a parent method in child","Adding extra parameters","Deleting a method"],a:1,e:"Method overriding redefines a parent class method in the child class."},
+    {q:"What does 'self' refer to in a class?",o:["The class itself","The current object instance","A global variable","The parent class"],a:1,e:"'self' refers to the current instance of the class."},
+    {q:"What is a class variable?",o:["Variable inside a method","Variable shared by all instances","Private variable","Local variable"],a:1,e:"A class variable is shared by all instances of the class."}
+   ]},
+  {id:'exceptions', name:'Exception Handling', icon:'⚠️', color:'#fee2e2',
+   questions:[
+    {q:"Which block always executes in exception handling?",o:["try","except","else","finally"],a:3,e:"The 'finally' block always executes, regardless of whether an exception occurred."},
+    {q:"What exception does dividing by zero raise?",o:["ValueError","TypeError","ZeroDivisionError","ArithmeticError"],a:2,e:"Dividing by zero raises ZeroDivisionError in Python."},
+    {q:"Which keyword raises an exception manually?",o:["throw","raise","error","except"],a:1,e:"The 'raise' keyword is used to manually trigger an exception."},
+    {q:"What does the 'except' block do?",o:["Runs always","Handles the exception","Raises an error","Skips the code"],a:1,e:"The except block catches and handles exceptions raised in the try block."},
+    {q:"Which exception is raised for invalid input type?",o:["ValueError","TypeError","IndexError","KeyError"],a:1,e:"TypeError is raised when an operation is applied to an inappropriate type."},
+    {q:"What is a user-defined exception?",o:["Built-in error","Exception created by the programmer","System error","Syntax error"],a:1,e:"User-defined exceptions are custom classes created by inheriting from Exception."},
+    {q:"Which exception handles list index out of range?",o:["KeyError","IndexError","ValueError","TypeError"],a:1,e:"IndexError is raised when a sequence index is out of range."},
+    {q:"What is the parent class of all exceptions?",o:["Error","Exception","BaseException","RuntimeError"],a:2,e:"BaseException is the base class for all built-in exceptions in Python."},
+    {q:"What does 'else' do in try-except?",o:["Executes if exception occurs","Executes if no exception","Always executes","Raises an exception"],a:1,e:"The 'else' block runs only if no exception was raised in the try block."},
+    {q:"Which exception is raised for an invalid dictionary key?",o:["IndexError","ValueError","KeyError","TypeError"],a:2,e:"KeyError is raised when a dictionary key is not found."}
+   ]},
+  {id:'datastructures', name:'Data Structures', icon:'📊', color:'#d1fae5',
+   questions:[
+    {q:"Which data structure works on LIFO principle?",o:["Queue","Stack","Array","Tree"],a:1,e:"Stack uses Last In First Out (LIFO)."},
+    {q:"Which data structure works on FIFO principle?",o:["Stack","Tree","Queue","Graph"],a:2,e:"Queue uses First In First Out (FIFO)."},
+    {q:"What is the time complexity of binary search?",o:["O(n)","O(n²)","O(log n)","O(1)"],a:2,e:"Binary search has O(log n) complexity."},
+    {q:"Which sorting algorithm has O(n²) worst case?",o:["Merge sort","Quick sort","Bubble sort","Heap sort"],a:2,e:"Bubble sort has O(n²) worst-case complexity."},
+    {q:"What is a linked list?",o:["Array with fixed size","Collection of nodes with pointers","A sorted array","A type of tree"],a:1,e:"A linked list is a collection of nodes, each with data and a pointer to the next node."},
+    {q:"What is the best-case complexity of bubble sort?",o:["O(n²)","O(n log n)","O(n)","O(1)"],a:2,e:"With early termination, bubble sort has O(n) best-case on a sorted array."},
+    {q:"Which operation adds to a stack?",o:["enqueue","dequeue","push","pop"],a:2,e:"push() adds an element to the top of the stack."},
+    {q:"What is a binary tree?",o:["Tree with any number of children","Tree where each node has at most 2 children","Sorted linked list","A graph structure"],a:1,e:"A binary tree has each node with at most two children."},
+    {q:"What does dequeue mean in a queue?",o:["Add to front","Remove from front","Add to rear","Remove from rear"],a:1,e:"Dequeue removes an element from the front of a queue."},
+    {q:"Which data structure is used in recursion internally?",o:["Queue","Stack","Array","Heap"],a:1,e:"Recursion uses the call stack internally."}
+   ]}
+];
+
+// ---- State ----
+let student = JSON.parse(sessionStorage.getItem('cs12_student') || 'null');
+let currentChapter = null, currentDiff = null;
+let currentQuestions = [], currentIndex = 0;
+let score = 0, wrong = 0, answered = false;
+let timerInterval = null, timeLeft = 0, timeTaken = [];
+const scores = JSON.parse(localStorage.getItem('cs12_scores') || '{}');
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function loginStudent() {
+  const name = document.getElementById('student-name').value.trim();
+  const roll = document.getElementById('student-roll').value.trim();
+  const section = document.getElementById('student-section').value;
+  if (!name) { toast('Please enter your name'); return; }
+  if (!roll) { toast('Please enter your roll number'); return; }
+  if (!section) { toast('Please select your section'); return; }
+  student = {name, roll, section};
+  sessionStorage.setItem('cs12_student', JSON.stringify(student));
+  showChapters();
+}
+
+function logout() {
+  sessionStorage.removeItem('cs12_student');
+  student = null;
+  show('home');
+}
+
+function showChapters() {
+  clearTimer();
+  document.getElementById('welcome-name').textContent = student.name;
+  const list = document.getElementById('chapters-list');
+  list.innerHTML = CHAPTERS.map(ch => {
+    const best = scores[ch.id] || null;
+    return `<div class="chapter-card" onclick="selectChapter('${ch.id}')">
+      <div class="ch-icon" style="background:${ch.color}">${ch.icon}</div>
+      <div class="ch-info">
+        <div class="ch-name">${ch.name}</div>
+        <div class="ch-meta">${ch.questions.length} questions${best !== null ? ` · Best: ${best}%` : ''}</div>
+        ${best !== null ? `<div class="progress-bar"><div class="progress-fill" style="width:${best}%"></div></div>` : ''}
+      </div>
+      <span class="ch-arrow">›</span>
+    </div>`;
+  }).join('');
+  show('chapters');
+}
+
+function selectChapter(id) {
+  currentChapter = CHAPTERS.find(c => c.id === id);
+  document.getElementById('diff-title').textContent = currentChapter.name;
+  show('diff');
+}
+
+function startQuiz(diff) {
+  currentDiff = diff;
+  const all = [...currentChapter.questions];
+  shuffle(all);
+  const counts = {easy:5, medium:7, hard:10, mixed:8};
+  currentQuestions = all.slice(0, counts[diff]);
+  currentIndex = 0; score = 0; wrong = 0; timeTaken = []; answered = false;
+  show('quiz');
+  renderQ();
+}
+
+function getTime() { return {easy:30,medium:25,hard:20,mixed:[20,25,30][Math.floor(Math.random()*3)]}[currentDiff]; }
+
+function renderQ() {
+  const q = currentQuestions[currentIndex];
+  const total = currentQuestions.length;
+  document.getElementById('q-counter').textContent = `Q${currentIndex+1} / ${total}  ✓${score}`;
+  document.getElementById('quiz-pfill').style.width = `${(currentIndex/total)*100}%`;
+  document.getElementById('q-tag').textContent = currentChapter.name.toUpperCase();
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('explanation').style.display = 'none';
+  document.getElementById('next-btn').style.display = 'none';
+  answered = false;
+
+  const wrap = document.getElementById('options-wrap');
+  const labels = ['A','B','C','D'];
+  wrap.innerHTML = q.o.map((opt,i) =>
+    `<button class="option" onclick="pick(${i})">
+      <span class="opt-lbl">${labels[i]}</span>${opt}
+    </button>`
+  ).join('');
+
+  timeLeft = getTime();
+  updateTimer();
+  clearTimer();
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimer();
+    if(timeLeft <= 0) { clearTimer(); autoFail(); }
+  }, 1000);
+}
+
+function updateTimer() {
+  document.getElementById('timer-val').textContent = timeLeft + 's';
+  document.getElementById('timer').classList.toggle('urgent', timeLeft <= 5);
+}
+
+function clearTimer() { if(timerInterval){ clearInterval(timerInterval); timerInterval=null; } }
+
+function autoFail() {
+  if(answered) return;
+  answered = true; wrong++;
+  timeTaken.push(getTime());
+  const q = currentQuestions[currentIndex];
+  document.querySelectorAll('.option').forEach((b,i) => {
+    b.disabled = true;
+    if(i===q.a) b.classList.add('correct');
+  });
+  showExp(q.e);
+}
+
+function pick(idx) {
+  if(answered) return;
+  clearTimer(); answered = true;
+  const elapsed = getTime() - timeLeft;
+  timeTaken.push(elapsed);
+  const q = currentQuestions[currentIndex];
+  document.querySelectorAll('.option').forEach((b,i) => {
+    b.disabled = true;
+    if(i===q.a) b.classList.add('correct');
+    else if(i===idx) b.classList.add('wrong');
+  });
+  if(idx===q.a) { score++; document.getElementById('q-counter').textContent = `Q${currentIndex+1} / ${currentQuestions.length}  ✓${score}`; }
+  else wrong++;
+  showExp(q.e);
+}
+
+function showExp(text) {
+  const el = document.getElementById('explanation');
+  el.textContent = '💡 ' + text;
+  el.style.display = 'block';
+  const nb = document.getElementById('next-btn');
+  nb.textContent = currentIndex+1 < currentQuestions.length ? 'Next question →' : 'See my results →';
+  nb.style.display = 'block';
+}
+
+function nextQuestion() {
+  currentIndex++;
+  if(currentIndex < currentQuestions.length) renderQ();
+  else showResults();
+}
+
+function showResults() {
+  const total = currentQuestions.length;
+  const pct = Math.round((score/total)*100);
+
+  if(!scores[currentChapter.id] || pct > scores[currentChapter.id]) scores[currentChapter.id] = pct;
+  try{ localStorage.setItem('cs12_scores', JSON.stringify(scores)); }catch(e){}
+
+  document.getElementById('ring-pct').textContent = pct + '%';
+  const offset = 263.89 - (pct/100)*263.89;
+  document.getElementById('ring-fill').style.strokeDashoffset = offset;
+
+  const grades = [[0,40,'Keep practicing! 📖'],[40,60,'Getting there! 👍'],[60,80,'Good work! 🎯'],[80,100,'Excellent! 🏆'],[100,101,'Perfect score! 🌟']];
+  const [,,title] = grades.find(([lo,hi]) => pct>=lo && pct<hi) || [0,100,'Done!'];
+  document.getElementById('result-title').textContent = title;
+  document.getElementById('result-sub').textContent = `${score} correct out of ${total} · ${currentDiff} mode`;
+  document.getElementById('s-correct').textContent = score;
+  document.getElementById('s-wrong').textContent = wrong;
+  const avg = timeTaken.length ? Math.round(timeTaken.reduce((a,b)=>a+b,0)/timeTaken.length) : 0;
+  document.getElementById('s-time').textContent = avg + 's';
+
+  show('result');
+  sendToSheet(pct, total, avg);
+}
+
+function sendToSheet(pct, total, avgTime) {
+  const el = document.getElementById('send-status');
+  if(!SHEET_URL || SHEET_URL==='YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+    el.textContent = '⚠️ Sheet URL not configured. Results saved locally only.';
+    el.style.background = '#fef9c3'; el.style.color = '#854d0e'; el.style.borderColor = '#fde047';
+    return;
+  }
+  const data = {
+    name: student.name,
+    roll: student.roll,
+    section: student.section,
+    chapter: currentChapter.name,
+    difficulty: currentDiff,
+    score: score,
+    total: total,
+    percentage: pct,
+    avgTime: avgTime,
+    timestamp: new Date().toLocaleString('en-IN', {timeZone:'Asia/Kolkata'})
+  };
+  fetch(SHEET_URL, {method:'POST', body: JSON.stringify(data)})
+    .then(r => r.json())
+    .then(res => {
+      el.textContent = '✅ Result saved to teacher\'s sheet!';
+      el.style.background = '#f0fdf4'; el.style.color = '#166534'; el.style.borderColor = '#86efac';
+    })
+    .catch(() => {
+      el.textContent = '⚠️ Could not reach sheet. Result saved locally.';
+      el.style.background = '#fef9c3'; el.style.color = '#854d0e'; el.style.borderColor = '#fde047';
+    });
+}
+
+function retryQuiz() { startQuiz(currentDiff); }
+function confirmQuit() { clearTimer(); showChapters(); }
+function shuffle(a) { for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} }
+
+if(student) showChapters();
+</script>
+</body>
+</html>
